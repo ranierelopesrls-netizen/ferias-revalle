@@ -136,6 +136,11 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 }
 footer{text-align:center;color:var(--mute);font-size:12px;padding:10px 0 30px}
 .hide{display:none!important}
+.anos{display:inline-flex;border:1px solid #cdd3de;border-radius:8px;overflow:hidden;margin-top:4px}
+.ano-b{font:inherit;font-weight:700;font-size:14px;border:0;background:#fff;color:var(--ink2);padding:8px 18px;cursor:pointer}
+.ano-b + .ano-b{border-left:1px solid #cdd3de}
+.ano-b.on{background:var(--ink);color:#fff}
+.barra-g .anos{margin-top:0}
 </style>
 </head>
 <body>
@@ -157,7 +162,8 @@ const CONFIG = {
   // Deixe vazio para testar em modo demonstração (os dados ficam só no seu navegador).
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwEjUHX5wPCt8ZhqJo4dsJTQNxMKVqP8eMTTpOVMK2MDUhE13AMpbgRLnTrRe5dFciwgQ/exec',
 
-  ANO: 2027,
+  ANO: 2027,            // ano que abre selecionado
+  ANOS: [2027, 2028],   // anos que o colaborador e o gestor podem escolher
   EMPRESA: 'Revalle Agreste',
   UNIDADES: ['Alagoinhas', 'Serrinha'],
   // Função -> setor. O colaborador escolhe a função; o setor é preenchido sozinho.
@@ -220,7 +226,11 @@ function feriados(y){
   for (const [d,n] of Object.entries(CONFIG.FERIADOS_EXTRAS||{})) if (d.startsWith(String(y))) f[d]=n;
   return f;
 }
-const FER = feriados(CONFIG.ANO);
+let FER = feriados(CONFIG.ANO);
+function definirAno(a){ CONFIG.ANO = +a; FER = feriados(CONFIG.ANO); }
+// botões de escolha de ano (2027 | 2028)
+const seletorAno = id => `<div class="anos" id="${id}">${CONFIG.ANOS.map(a=>`<button type="button" class="ano-b${a===CONFIG.ANO?' on':''}" data-ano="${a}">${a}</button>`).join('')}</div>`;
+function marcarAno(id){ document.querySelectorAll(`#${id} .ano-b`).forEach(b=>b.classList.toggle('on', +b.dataset.ano===CONFIG.ANO)); }
 
 /* ================================================================
    Regras (CLT art. 134): até 3 períodos, mínimo 5 dias cada,
@@ -266,7 +276,7 @@ const API = {
 const Demo = {
   mem: null, chaveDemo: 'demo',
   key(){ return 'ferias-demo-'+CONFIG.ANO; },
-  load(){ if(this.mem) return this.mem; try{ this.mem = JSON.parse(localStorage.getItem(this.key())||'[]'); }catch(e){ this.mem=[]; } return this.mem; },
+  load(){ if(this.mem && this.memKey===this.key()) return this.mem; this.memKey=this.key(); try{ this.mem = JSON.parse(localStorage.getItem(this.key())||'[]'); }catch(e){ this.mem=[]; } return this.mem; },
   save(){ try{ localStorage.setItem(this.key(), JSON.stringify(this.mem)); }catch(e){} },
   async get(p){
     const L = this.load();
@@ -333,7 +343,9 @@ function telaColaborador(){
   <div class="grid">
     <aside class="side card">
       <h2>Seus dados</h2>
-      <div class="muted">Se precisar mudar depois, é só enviar de novo com o mesmo nome e unidade.</div>
+      <div class="muted">Se precisar mudar depois, é só enviar de novo com o mesmo nome, unidade e ano.</div>
+      <label>Ano das férias</label>
+      ${seletorAno('f-ano')}
       <label for="f-nome">Nome completo</label>
       <input id="f-nome" autocomplete="name" maxlength="120">
       <div class="row2">
@@ -353,7 +365,7 @@ function telaColaborador(){
     </aside>
     <section class="card">
       <div class="cal-head">
-        <div><h2>Calendário ${CONFIG.ANO}</h2></div>
+        <div><h2 id="cal-tit">Calendário ${CONFIG.ANO}</h2></div>
         <button class="btn sec sm" id="b-limpar">Limpar tudo</button>
       </div>
       <p class="dica" id="dica"></p>
@@ -383,6 +395,18 @@ function telaColaborador(){
     carregarOcupacao(); atualizarResumo();
   }));
   $('#b-enviar').onclick = enviar;
+  $('#f-ano').addEventListener('click', e=>{
+    const b = e.target.closest('.ano-b'); if (!b || +b.dataset.ano===CONFIG.ANO) return;
+    const tinha = S.periodos.length;
+    definirAno(b.dataset.ano);
+    S.periodos=[]; S.pendente=null; S.hover=null; S.ocupacao={}; S.ocupKey='';
+    marcarAno('f-ano');
+    $('#h-tit').textContent = `Programação de Férias ${CONFIG.ANO}`;
+    $('#cal-tit').textContent = `Calendário ${CONFIG.ANO}`;
+    $('#meses').innerHTML = MESES.map((_,m)=>mesHTML(m)).join('');
+    if (tinha) toast(`Ano trocado para ${CONFIG.ANO}. Marque os períodos de novo.`);
+    carregarOcupacao(); atualizarTudo();
+  });
   atualizarTudo();
 }
 
@@ -510,12 +534,13 @@ function telaSucesso(d, r){
     <div class="muted">Guarde este número. ${r.atualizado ? 'Seu pedido anterior foi substituído e voltou para análise.' : 'Seu pedido vai para análise do gestor.'}</div>
     <div class="resumo">
       <div><span>Nome</span><b>${esc(d.nome)}</b></div>
+      <div><span>Ano</span><b>${d.ano}</b></div>
       <div><span>Unidade</span><b>${esc(d.unidade)}</b></div>
       <div><span>Função</span><b>${esc(d.funcao)} (${esc(d.setor)})</b></div>
       ${d.periodos.map((p,i)=>`<div><span>Período ${i+1}</span><b>${br(p.ini)} a ${br(p.fim)} (${nDias(p)} dias)</b></div>`).join('')}
       <div><span>Total</span><b>${v.total} dias</b></div>
     </div>
-    <p class="muted">Para mudar as datas, envie um novo pedido com o mesmo nome e unidade.</p>
+    <p class="muted">Para mudar as datas, envie um novo pedido com o mesmo nome, unidade e ano.</p>
     <button class="btn sec" onclick="location.reload()">Fazer outro pedido</button>
   </div>`;
 }
@@ -588,6 +613,7 @@ function painelGestor(){
   $('#app').innerHTML = `
     ${DEMO ? '<div class="demo"><b>Modo demonstração.</b> Mostrando só os pedidos feitos neste navegador.</div>' : ''}
     <div class="barra-g">
+      <div style="min-width:0"><label>Ano</label>${seletorAno('g-ano')}</div>
       <div><label>Unidade</label><select id="g-uni">${op(CONFIG.UNIDADES,A.f.unidade)}</select></div>
       <div><label>Setor</label><select id="g-set">${op(SETORES,A.f.setor)}</select></div>
       <div><label>Status</label><select id="g-st">${op(STATUS,A.f.status)}</select></div>
@@ -601,6 +627,13 @@ function painelGestor(){
     <div class="card scroll heat"><div class="tl" id="g-heat"></div></div>
     <div class="sec-t"><h2>Pedidos</h2><span class="muted"><span class="pill st-Pendente">Pendente</span> <span class="pill st-Aprovado">Aprovado</span> <span class="pill st-Ajustar">Ajustar</span> <span class="pill st-Recusado" style="color:#555">Recusado</span></span></div>
     <div class="card scroll"><div class="tl" id="g-lista"></div></div>`;
+  $('#g-ano').addEventListener('click', e=>{
+    const b = e.target.closest('.ano-b'); if (!b || +b.dataset.ano===CONFIG.ANO) return;
+    definirAno(b.dataset.ano);
+    $('#h-tit').textContent = `Férias ${CONFIG.ANO} · Área do gestor`;
+    $('#rodape').textContent = `${CONFIG.EMPRESA} · Férias ${CONFIG.ANO}`;
+    carregarPedidos();
+  });
   $('#g-uni').onchange = e=>{ A.f.unidade=e.target.value; renderGestor(); };
   $('#g-set').onchange = e=>{ A.f.setor=e.target.value; renderGestor(); };
   $('#g-st').onchange  = e=>{ A.f.status=e.target.value; renderGestor(); };
