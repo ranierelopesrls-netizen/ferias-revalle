@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programação de Férias</title>
+<style>
+:root{
+  --ink:#16213a; --ink2:#4d5872; --mute:#8a94a8; --line:#e2e6ee; --bg:#f4f5f8; --card:#fff;
+  --acc:#e8a33d; --p0:#2b6fd6; --p1:#0f9d76; --p2:#8a4fe0;
+  --red:#d6453d; --redbg:#fdecea; --warn:#b97b0c; --warnbg:#fff6e5; --ok:#0f9d76; --okbg:#e6f6f1;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
+header.top{background:var(--ink);color:#fff;padding:22px 24px 24px}
+.wrap{max-width:1280px;margin:0 auto}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);font-weight:700}
+h1{margin:4px 0 6px;font-size:26px;line-height:1.2}
+header.top p{margin:0;color:#c9d1e2;max-width:780px}
+main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
+.demo{background:var(--warnbg);border:1px solid #f1d49a;color:#7a5208;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px}
+.grid{display:grid;grid-template-columns:370px 1fr;gap:20px;align-items:start}
+@media(max-width:920px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.side{position:sticky;top:16px}
+@media(max-width:920px){.side{position:static}}
+h2{font-size:16px;margin:0 0 2px}
+.muted{color:var(--ink2);font-size:13px}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+label .opt{font-weight:400;color:var(--mute)}
+input,select,textarea{width:100%;font:inherit;padding:9px 10px;border:1px solid #cdd3de;border-radius:8px;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:60px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--p0);outline-offset:-1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:13px;margin-top:14px;cursor:pointer}
+.check input{width:auto;margin-top:3px}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:600;border-radius:8px;border:1px solid transparent;padding:10px 16px;cursor:pointer;background:var(--ink);color:#fff}
+.btn:hover{filter:brightness(1.15)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;filter:none}
+.btn.sec{background:#fff;color:var(--ink);border-color:#cdd3de}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.full{width:100%}
+.lnk{background:none;border:0;color:var(--p0);font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
+
+/* períodos */
+.contador{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 6px}
+.contador b{font-size:22px}
+.barra{height:8px;background:#eceff4;border-radius:99px;overflow:hidden;display:flex}
+.barra span{height:100%}
+.per{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-top:8px}
+.tag{flex:none;width:24px;height:24px;border-radius:6px;color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+.per .info{flex:1;min-width:0}
+.per b{font-size:14px}
+.vazio-per{border:1px dashed #cdd3de;border-radius:10px;padding:12px;color:var(--ink2);font-size:13px;margin-top:8px}
+.msgs{margin-top:12px;display:grid;gap:6px}
+.msg{font-size:13px;border-radius:8px;padding:8px 10px}
+.msg.erro{background:var(--redbg);color:#9b2a23}
+.msg.aviso{background:var(--warnbg);color:#7a5208}
+
+/* calendário */
+.cal-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.dica{font-size:13px;color:var(--ink2);margin:0 0 12px;min-height:20px}
+.dica b{color:var(--ink)}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-bottom:14px}
+.legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.meses{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:20px 18px}
+.mes-t{font-weight:700;font-size:14px;margin-bottom:4px}
+.sem,.dias{display:grid;grid-template-columns:repeat(7,1fr)}
+.sem span{font-size:11px;color:var(--mute);text-align:center;padding-bottom:2px}
+.dia{position:relative;border:0;background:none;font:inherit;font-size:13px;height:30px;cursor:pointer;color:var(--ink);padding:0;border-radius:0}
+.dia:hover{background:#e9eefa}
+.dia.fds{color:var(--mute)}
+.dia.fer{color:var(--red);font-weight:700}
+.dia.lotado{background:var(--redbg)}
+.dia.prev{background:#d6e3fa}
+.dia.p0,.dia.p1,.dia.p2{color:#fff;font-weight:600}
+.dia.p0{background:var(--p0)} .dia.p1{background:var(--p1)} .dia.p2{background:var(--p2)}
+.dia.ini{border-top-left-radius:8px;border-bottom-left-radius:8px}
+.dia.fim{border-top-right-radius:8px;border-bottom-right-radius:8px}
+.dia.pend{background:var(--ink);color:#fff;border-radius:8px}
+.dia.passado{color:#cbd0d9;cursor:not-allowed;background:none;font-weight:400}
+.dia[data-occ]::after{content:attr(data-occ);position:absolute;top:2px;right:3px;font-size:9px;font-weight:800;color:var(--warn);line-height:1}
+.dia.lotado::after{color:var(--red)}
+.dia.p0::after,.dia.p1::after,.dia.p2::after,.dia.pend::after{color:#fff!important;opacity:.85}
+
+/* sucesso */
+.sucesso{max-width:640px;margin:10px auto}
+.selo{display:inline-block;background:var(--okbg);color:var(--ok);font-weight:700;border-radius:99px;padding:4px 12px;font-size:13px}
+.proto{font-size:28px;font-weight:800;letter-spacing:.02em;margin:6px 0}
+.resumo{margin:14px 0;border-top:1px solid var(--line)}
+.resumo div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.resumo span:first-child{color:var(--ink2)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;max-width:90vw;z-index:50}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+/* gestor */
+.login{max-width:380px;margin:30px auto}
+.barra-g{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.barra-g > div{min-width:150px}
+.barra-g label{margin-top:0}
+.barra-g .grow{flex:1;min-width:200px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi small{color:var(--ink2);font-size:12px;display:block}
+.kpi b{font-size:26px}
+.kpi.alerta b{color:var(--red)}
+.sec-t{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin:22px 0 10px}
+.sec-t h2{font-size:17px}
+.scroll{overflow-x:auto}
+.tl{min-width:980px}
+.tl-row{display:grid;grid-template-columns:250px 1fr 150px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.tl-row.cab{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;padding:4px 0;border-bottom:1px solid #cfd5df}
+.heat .tl-row{grid-template-columns:250px 1fr}
+.quem b{font-size:14px;display:block}
+.quem small{color:var(--ink2);font-size:12px;display:block}
+.quem .obs{color:var(--ink2);font-style:italic}
+.trilho{position:relative;height:26px;background:#f7f8fb;border-radius:6px}
+.trilho .mline{position:absolute;top:0;bottom:0;width:1px;background:#e4e8ef}
+.trilho .bar{position:absolute;top:4px;bottom:4px;border-radius:4px;min-width:3px}
+.trilho .cel{position:absolute;top:0;bottom:0}
+.meses-cab{position:relative;height:16px}
+.meses-cab span{position:absolute;font-size:11px;color:var(--mute)}
+.st-Pendente{background:#9aa6bd} .st-Aprovado{background:var(--ok)} .st-Ajustar{background:var(--acc)} .st-Recusado{background:#d9dde5}
+.choque{font-size:12px;color:var(--red);margin-top:3px}
+.choque.leve{color:var(--warn)}
+.stbox select{padding:6px 8px;font-size:13px}
+.stbox input{padding:5px 8px;font-size:12px;margin-top:5px}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:1px 8px;color:#fff;vertical-align:1px}
+.mob{display:none}
+@media(max-width:920px){
+  .mob{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding:10px 16px;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 -4px 16px rgba(22,33,58,.08)}
+  .mob span{font-size:14px} main{padding-bottom:90px} #toast{bottom:84px}
+}
+footer{text-align:center;color:var(--mute);font-size:12px;padding:10px 0 30px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="eyebrow" id="h-emp"></div>
+  <h1 id="h-tit"></h1>
+  <p id="h-sub"></p>
+</div></header>
+<main id="app"></main>
+<footer id="rodape"></footer>
+<div id="toast"></div>
+
+<script>
+/* ================================================================
+   CONFIGURAÇÃO — ajuste aqui
+   ================================================================ */
+const CONFIG = {
+  // Cole a URL do App da Web do Google Apps Script (termina em /exec).
+  // Deixe vazio para testar em modo demonstração (os dados ficam só no seu navegador).
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwEjUHX5wPCt8ZhqJo4dsJTQNxMKVqP8eMTTpOVMK2MDUhE13AMpbgRLnTrRe5dFciwgQ/exec',
+
+  ANO: 2027,
+  EMPRESA: 'Revalle Agreste',
+  UNIDADES: ['Alagoinhas', 'Serrinha'],
+  // Função -> setor. O colaborador escolhe a função; o setor é preenchido sozinho.
+  // A ocupação e os choques são contados por unidade + setor.
+  FUNCOES: {
+    'Supervisor de Armazém': 'Armazém',
+    'Analista de Armazém': 'Armazém',
+    'Supervisor de Distribuição': 'Distribuição',
+    'Analista de Distribuição': 'Distribuição',
+    'Gerente de Operações e Distribuição': 'Distribuição'
+  },
+
+  // Quantas pessoas do mesmo setor e unidade podem estar de férias ao mesmo tempo.
+  // Acima disso o dia aparece em vermelho (para o colaborador e para o gestor).
+  LIMITE_SIMULTANEO: 2,
+
+  // Feriados estaduais/municipais além dos nacionais (AAAA-MM-DD: nome)
+  FERIADOS_EXTRAS: { '2027-07-02': 'Independência da Bahia' },
+
+  PRAZO_TEXTO: '' // ex.: 'Envie até 15/12/2026.'
+};
+
+/* ================================================================
+   Utilidades de data (tudo em UTC para não ter erro de fuso)
+   ================================================================ */
+const DAY = 86400000;
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MES_C = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const SEMANA = ['dom','seg','ter','qua','qui','sex','sáb'];
+const CORES = ['var(--p0)','var(--p1)','var(--p2)'];
+const STATUS = ['Pendente','Aprovado','Ajustar','Recusado'];
+
+const iso = t => new Date(t).toISOString().slice(0,10);
+const ts  = s => Date.UTC(+s.slice(0,4), +s.slice(5,7)-1, +s.slice(8,10));
+const addD = (s,n) => iso(ts(s) + n*DAY);
+const dow = s => new Date(ts(s)).getUTCDay();
+const br  = s => s ? s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4) : '';
+const brc = s => s.slice(8,10)+'/'+s.slice(5,7);
+const nDias = p => Math.round((ts(p.fim) - ts(p.ini))/DAY) + 1;
+const HOJE = (()=>{ const d=new Date(); return iso(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); })();
+// identifica a pessoa pelo nome + unidade (sem acento, sem diferença de maiúsculas e espaços)
+const idPessoa = (n,u) => (String(n||'')+'|'+String(u||'')).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+const setorDe = f => (CONFIG.FUNCOES||{})[f] || '';
+const SETORES = [...new Set(Object.values(CONFIG.FUNCOES))];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function pascoa(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+        h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+        mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1;
+  return iso(Date.UTC(y,mes-1,dia));
+}
+function feriados(y){
+  const f = {
+    [`${y}-01-01`]:'Confraternização Universal', [addD(pascoa(y),-2)]:'Sexta-feira Santa',
+    [`${y}-04-21`]:'Tiradentes', [`${y}-05-01`]:'Dia do Trabalho', [`${y}-09-07`]:'Independência',
+    [`${y}-10-12`]:'N. Sra. Aparecida', [`${y}-11-02`]:'Finados', [`${y}-11-15`]:'Proclamação da República',
+    [`${y}-11-20`]:'Consciência Negra', [`${y}-12-25`]:'Natal'
+  };
+  for (const [d,n] of Object.entries(CONFIG.FERIADOS_EXTRAS||{})) if (d.startsWith(String(y))) f[d]=n;
+  return f;
+}
+const FER = feriados(CONFIG.ANO);
+
+/* ================================================================
+   Regras (CLT art. 134): até 3 períodos, mínimo 5 dias cada,
+   um deles com 14+ dias, não começar nos 2 dias antes de feriado/DSR
+   ================================================================ */
+function validar(periodos, abono){
+  const erros=[], avisos=[];
+  const alvo = abono ? 20 : 30;
+  const total = periodos.reduce((s,p)=>s+nDias(p),0);
+  if (!periodos.length) erros.push('Marque pelo menos um período no calendário.');
+  periodos.forEach((p,i)=>{ if(nDias(p)<5) erros.push(`O período ${i+1} tem ${nDias(p)} dia(s). O mínimo é 5 dias.`); });
+  if (periodos.length>1 && !periodos.some(p=>nDias(p)>=14)) erros.push('Quando as férias são divididas, um dos períodos precisa ter pelo menos 14 dias.');
+  if (total>alvo) erros.push(`Você marcou ${total} dias. O máximo é ${alvo}${abono?' (porque vai vender 10 dias)':''}.`);
+  if (periodos.length && total<alvo && !erros.length) avisos.push(`Faltam ${alvo-total} dia(s) para completar ${alvo}. Se você tem menos dias de direito, explique na observação.`);
+  periodos.forEach((p,i)=>{
+    for (const k of [1,2]){
+      const d = addD(p.ini,k);
+      if (FER[d] || dow(d)===0){
+        avisos.push(`O período ${i+1} começa ${k===1?'1 dia':'2 dias'} antes de ${FER[d]?'feriado ('+FER[d]+')':'domingo'}. A lei não permite começar as férias nos 2 dias antes de feriado ou da folga semanal. Confirme com o RH ou escolha outra data.`);
+        break;
+      }
+    }
+  });
+  return {erros, avisos, total, alvo};
+}
+
+/* ================================================================
+   Comunicação com o Apps Script (ou modo demonstração)
+   ================================================================ */
+const DEMO = !CONFIG.APPS_SCRIPT_URL;
+const API = {
+  async get(params){
+    if (DEMO) return Demo.get(params);
+    const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?' + new URLSearchParams(params));
+    return r.json();
+  },
+  async post(body){
+    if (DEMO) return Demo.post(body);
+    const r = await fetch(CONFIG.APPS_SCRIPT_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)});
+    return r.json();
+  }
+};
+const Demo = {
+  mem: null, chaveDemo: 'demo',
+  key(){ return 'ferias-demo-'+CONFIG.ANO; },
+  load(){ if(this.mem) return this.mem; try{ this.mem = JSON.parse(localStorage.getItem(this.key())||'[]'); }catch(e){ this.mem=[]; } return this.mem; },
+  save(){ try{ localStorage.setItem(this.key(), JSON.stringify(this.mem)); }catch(e){} },
+  async get(p){
+    const L = this.load();
+    if (p.acao==='ocupacao'){
+      const dias={};
+      L.filter(x=>x.unidade===p.unidade && x.setor===p.setor && x.status!=='Recusado')
+       .forEach(x=>x.periodos.forEach(per=>{ for(let d=per.ini; d<=per.fim; d=addD(d,1)) dias[d]=(dias[d]||0)+1; }));
+      return {ok:true, dias};
+    }
+    if (p.acao==='listar'){
+      if (p.chave!==this.chaveDemo) return {ok:false, erro:'Chave inválida. No modo demonstração a chave é "demo".'};
+      return {ok:true, pedidos:L};
+    }
+    return {ok:true};
+  },
+  async post(b){
+    const L = this.load();
+    if (b.acao==='enviar'){
+      const v = validar(b.periodos, b.abono);
+      if (v.erros.length) return {ok:false, erro:v.erros[0]};
+      const agora = new Date().toLocaleString('pt-BR');
+      let x = L.find(r=>idPessoa(r.nome,r.unidade)===idPessoa(b.nome,b.unidade));
+      const atualizado = !!x;
+      if (!x){ x={protocolo:`FER-${CONFIG.ANO}-${String(L.length+1).padStart(4,'0')}`, enviadoEm:agora}; L.push(x); }
+      Object.assign(x, {atualizadoEm:agora, nome:b.nome, unidade:b.unidade, setor:b.setor, funcao:b.funcao,
+        periodos:b.periodos, total:v.total, obs:b.obs, status:'Pendente', comentario:''});
+      this.save();
+      return {ok:true, protocolo:x.protocolo, atualizado};
+    }
+    if (b.acao==='status'){
+      if (b.chave!==this.chaveDemo) return {ok:false, erro:'Chave inválida.'};
+      const x = L.find(r=>r.protocolo===b.protocolo);
+      if (!x) return {ok:false, erro:'Pedido não encontrado.'};
+      x.status=b.status; x.comentario=b.comentario||''; this.save();
+      return {ok:true};
+    }
+    return {ok:false, erro:'Ação desconhecida.'};
+  }
+};
+
+/* ================================================================
+   Pequenos helpers de interface
+   ================================================================ */
+const $ = s => document.querySelector(s);
+let toastT;
+function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),3800); }
+const sess = {
+  get(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ sessionStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ sessionStorage.removeItem(k); }catch(e){} }
+};
+
+/* ================================================================
+   TELA DO COLABORADOR
+   ================================================================ */
+const S = { periodos:[], pendente:null, hover:null, ocupacao:{}, ocupKey:'' };
+
+function telaColaborador(){
+  $('#h-tit').textContent = `Programação de Férias ${CONFIG.ANO}`;
+  $('#h-sub').textContent = `Escolha no calendário quando você quer tirar suas férias. Você pode dividir em até 3 períodos. O pedido vai para aprovação do gestor. ${CONFIG.PRAZO_TEXTO}`;
+  const op = arr => arr.map(x=>`<option>${esc(x)}</option>`).join('');
+  $('#app').innerHTML = `
+  ${DEMO ? '<div class="demo"><b>Modo demonstração.</b> Os pedidos ficam só neste navegador. Para valer de verdade, cole a URL do Apps Script em <code>CONFIG.APPS_SCRIPT_URL</code>.</div>' : ''}
+  <div class="grid">
+    <aside class="side card">
+      <h2>Seus dados</h2>
+      <div class="muted">Se precisar mudar depois, é só enviar de novo com o mesmo nome e unidade.</div>
+      <label for="f-nome">Nome completo</label>
+      <input id="f-nome" autocomplete="name" maxlength="120">
+      <div class="row2">
+        <div><label for="f-uni">Unidade</label><select id="f-uni"><option value="">Escolha</option>${op(CONFIG.UNIDADES)}</select></div>
+        <div><label for="f-fun">Função</label><select id="f-fun"><option value="">Escolha</option>${op(Object.keys(CONFIG.FUNCOES))}</select></div>
+      </div>
+      <div class="muted" id="f-setor" style="margin-top:6px"></div>
+      <hr>
+      <h2>Períodos escolhidos</h2>
+      <div class="contador"><span class="muted">Dias marcados</span><span><b id="c-total">0</b> <span class="muted">de <span id="c-alvo">30</span></span></span></div>
+      <div class="barra" id="c-barra"></div>
+      <div id="lista-per"></div>
+      <div class="msgs" id="msgs"></div>
+      <label for="f-obs">Observação <span class="opt">(opcional)</span></label>
+      <textarea id="f-obs" maxlength="500" placeholder="Ex.: casamento em 12/06, prefiro junho"></textarea>
+      <div style="margin-top:14px"><button class="btn full" id="b-enviar" disabled>Enviar pedido</button></div>
+    </aside>
+    <section class="card">
+      <div class="cal-head">
+        <div><h2>Calendário ${CONFIG.ANO}</h2></div>
+        <button class="btn sec sm" id="b-limpar">Limpar tudo</button>
+      </div>
+      <p class="dica" id="dica"></p>
+      <div class="legenda">
+        <span><i style="background:var(--p0)"></i>Período 1</span>
+        <span><i style="background:var(--p1)"></i>Período 2</span>
+        <span><i style="background:var(--p2)"></i>Período 3</span>
+        <span><i style="background:#fff;border:1px solid var(--red)"></i><b style="color:var(--red)">Vermelho</b> = feriado</span>
+        <span id="leg-occ" class="hide"><b style="color:var(--warn)">nº</b> = colegas do seu setor já de férias no dia · <i style="background:var(--redbg)"></i>dia cheio</span>
+      </div>
+      <div class="meses" id="meses">${MESES.map((_,m)=>mesHTML(m)).join('')}</div>
+    </section>
+  </div>
+  <div class="mob"><span id="m-txt"></span><button class="btn sm" id="m-ir">Revisar e enviar</button></div>`;
+  $('#m-ir').onclick = ()=>$('#lista-per').scrollIntoView({behavior:'smooth', block:'center'});
+
+  const meses = $('#meses');
+  meses.addEventListener('click', e=>{ const b=e.target.closest('.dia'); if(b) clicarDia(b.dataset.d); });
+  meses.addEventListener('mouseover', e=>{ const b=e.target.closest('.dia'); if(b && S.pendente){ S.hover=b.dataset.d; pintar(); } });
+  meses.addEventListener('mouseleave', ()=>{ if(S.hover){ S.hover=null; pintar(); } });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && S.pendente){ S.pendente=null; S.hover=null; pintar(); atualizarDica(); } });
+  $('#b-limpar').onclick = ()=>{ S.periodos=[]; S.pendente=null; S.hover=null; atualizarTudo(); };
+  $('#f-nome').addEventListener('input', atualizarResumo);
+  ['#f-uni','#f-fun'].forEach(id=>$(id).addEventListener('change', ()=>{
+    const st = setorDe($('#f-fun').value);
+    $('#f-setor').innerHTML = st ? `Setor: <b>${esc(st)}</b>` : '';
+    carregarOcupacao(); atualizarResumo();
+  }));
+  $('#b-enviar').onclick = enviar;
+  atualizarTudo();
+}
+
+function mesHTML(m){
+  const y = CONFIG.ANO, n = new Date(Date.UTC(y,m+1,0)).getUTCDate(), off = new Date(Date.UTC(y,m,1)).getUTCDay();
+  let h = `<div class="mes"><div class="mes-t">${MESES[m]}</div><div class="sem">${['D','S','T','Q','Q','S','S'].map(x=>`<span>${x}</span>`).join('')}</div><div class="dias">`;
+  for (let i=0;i<off;i++) h += '<span></span>';
+  for (let d=1; d<=n; d++){
+    const s = iso(Date.UTC(y,m,d)), w = (off+d-1)%7, f = FER[s];
+    const cls = ['dia', (w===0||w===6)?'fds':'', f?'fer':'', s<HOJE?'passado':''].filter(Boolean).join(' ');
+    h += `<button type="button" class="${cls}" data-d="${s}" title="${esc((f?f+' · ':'')+SEMANA[w]+' '+br(s))}">${d}</button>`;
+  }
+  return h + '</div></div>';
+}
+
+function clicarDia(d){
+  if (d < HOJE) return;
+  if (S.pendente === null){
+    const i = S.periodos.findIndex(p=>d>=p.ini && d<=p.fim);
+    if (i>=0){ toast(`Esse dia já está no período ${i+1}. Para mudar, clique em "Remover" na lista.`); return; }
+    if (S.periodos.length >= 3){ toast('Você já marcou 3 períodos, que é o máximo. Remova um para marcar outro.'); return; }
+    S.pendente = d;
+  } else {
+    let a = S.pendente, b = d; if (b < a) [a,b] = [b,a];
+    S.pendente = null; S.hover = null;
+    if (S.periodos.some(p=>!(b<p.ini || a>p.fim))){ toast('Esse período passa por cima de outro já marcado. Tente de novo.'); atualizarTudo(); return; }
+    S.periodos.push({ini:a, fim:b});
+    S.periodos.sort((x,y)=>x.ini<y.ini?-1:1);
+  }
+  atualizarTudo();
+}
+
+function pintar(){
+  let pv = null;
+  if (S.pendente && S.hover) pv = S.pendente<S.hover ? [S.pendente,S.hover] : [S.hover,S.pendente];
+  const lim = CONFIG.LIMITE_SIMULTANEO;
+  document.querySelectorAll('#meses .dia').forEach(el=>{
+    const d = el.dataset.d;
+    el.classList.remove('p0','p1','p2','ini','fim','prev','pend','lotado');
+    const i = S.periodos.findIndex(p=>d>=p.ini && d<=p.fim);
+    if (i>=0){ el.classList.add('p'+i); if(d===S.periodos[i].ini) el.classList.add('ini'); if(d===S.periodos[i].fim) el.classList.add('fim'); }
+    else if (pv && d>=pv[0] && d<=pv[1] && d>=HOJE) el.classList.add('prev');
+    if (d===S.pendente) el.classList.add('pend');
+    const o = S.ocupacao[d] || 0;
+    if (o && d>=HOJE){ el.dataset.occ = o; if (o>=lim) el.classList.add('lotado'); } else delete el.dataset.occ;
+  });
+}
+
+function atualizarDica(){
+  const el = $('#dica');
+  if (S.pendente) el.innerHTML = `Início em <b>${br(S.pendente)}</b>. Agora clique no <b>último dia</b> de férias. (Esc cancela)`;
+  else if (S.periodos.length>=3) el.innerHTML = 'Você marcou os 3 períodos permitidos.';
+  else el.innerHTML = `Clique no <b>primeiro dia</b> e depois no <b>último dia</b> de férias${S.periodos.length?' para marcar mais um período':''}.`;
+}
+
+function atualizarResumo(){
+  const v = validar(S.periodos, false);
+  $('#c-total').textContent = v.total;
+  $('#c-alvo').textContent = v.alvo;
+  $('#m-txt').innerHTML = `<b>${v.total}</b> de ${v.alvo} dias · ${S.periodos.length} período(s)`;
+  $('#c-barra').innerHTML = S.periodos.map((p,i)=>`<span style="width:${Math.min(100,nDias(p)/v.alvo*100)}%;background:${CORES[i]}"></span>`).join('');
+  $('#lista-per').innerHTML = S.periodos.length ? S.periodos.map((p,i)=>{
+    const volta = addD(p.fim,1);
+    return `<div class="per"><span class="tag" style="background:${CORES[i]}">${i+1}</span>
+      <div class="info"><b>${br(p.ini)} a ${br(p.fim)}</b><div class="muted">${nDias(p)} dias · volta ao trabalho ${SEMANA[dow(volta)]} ${brc(volta)}</div></div>
+      <button class="lnk" data-rm="${i}">Remover</button></div>`;
+  }).join('') : '<div class="vazio-per">Nenhum período marcado ainda. Use o calendário ao lado.</div>';
+  $('#lista-per').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ S.periodos.splice(+b.dataset.rm,1); atualizarTudo(); });
+
+  const faltaDados = [];
+  if (!$('#f-nome').value.trim()) faltaDados.push('nome');
+  if (!$('#f-uni').value) faltaDados.push('unidade');
+  if (!$('#f-fun').value) faltaDados.push('função');
+  const conflito = S.periodos.some(p=>{ for(let d=p.ini; d<=p.fim; d=addD(d,1)) if((S.ocupacao[d]||0)>=CONFIG.LIMITE_SIMULTANEO) return true; return false; });
+  const av = [...v.avisos];
+  if (conflito) av.push(`Algum dia escolhido já tem ${CONFIG.LIMITE_SIMULTANEO} ou mais colegas do seu setor de férias. Você pode enviar, mas o gestor pode pedir ajuste.`);
+  const erros = S.periodos.length ? v.erros : [];
+  $('#msgs').innerHTML = erros.map(t=>`<div class="msg erro">${esc(t)}</div>`).join('') + av.map(t=>`<div class="msg aviso">${esc(t)}</div>`).join('')
+    + (faltaDados.length && S.periodos.length && !erros.length ? `<div class="msg aviso">Preencha: ${faltaDados.join(', ')}.</div>` : '');
+  $('#b-enviar').disabled = !!(v.erros.length || faltaDados.length);
+}
+
+function atualizarTudo(){ pintar(); atualizarDica(); atualizarResumo(); }
+
+async function carregarOcupacao(){
+  const u = $('#f-uni').value, s = setorDe($('#f-fun').value);
+  const k = u+'|'+s;
+  if (!u || !s){ S.ocupacao={}; S.ocupKey=''; $('#leg-occ').classList.add('hide'); pintar(); return; }
+  if (k===S.ocupKey) return;
+  S.ocupKey = k;
+  try{
+    const r = await API.get({acao:'ocupacao', ano:CONFIG.ANO, unidade:u, setor:s});
+    if (S.ocupKey!==k) return;
+    S.ocupacao = (r && r.ok && r.dias) || {};
+    $('#leg-occ').classList.remove('hide');
+  }catch(e){ S.ocupacao={}; }
+  pintar(); atualizarResumo();
+}
+
+async function enviar(){
+  const b = $('#b-enviar');
+  const dados = {
+    acao:'enviar', ano:CONFIG.ANO,
+    nome:$('#f-nome').value.trim().replace(/\s+/g,' '),
+    unidade:$('#f-uni').value, funcao:$('#f-fun').value, setor:setorDe($('#f-fun').value),
+    obs:$('#f-obs').value.trim(), periodos:S.periodos
+  };
+  b.disabled = true; b.textContent = 'Enviando...';
+  try{
+    const r = await API.post(dados);
+    if (!r || !r.ok) throw new Error((r && r.erro) || 'Não foi possível enviar.');
+    telaSucesso(dados, r);
+  }catch(e){
+    toast(e.message && e.message!=='Failed to fetch' ? e.message : 'Sem conexão com o servidor. Tente de novo em instantes.');
+    b.disabled = false; b.textContent = 'Enviar pedido';
+  }
+}
+
+function telaSucesso(d, r){
+  const v = validar(d.periodos, false);
+  window.scrollTo(0,0);
+  $('#app').innerHTML = `<div class="card sucesso">
+    <span class="selo">${r.atualizado ? 'Pedido atualizado' : 'Pedido enviado'}</span>
+    <div class="proto">${esc(r.protocolo)}</div>
+    <div class="muted">Guarde este número. ${r.atualizado ? 'Seu pedido anterior foi substituído e voltou para análise.' : 'Seu pedido vai para análise do gestor.'}</div>
+    <div class="resumo">
+      <div><span>Nome</span><b>${esc(d.nome)}</b></div>
+      <div><span>Unidade</span><b>${esc(d.unidade)}</b></div>
+      <div><span>Função</span><b>${esc(d.funcao)} (${esc(d.setor)})</b></div>
+      ${d.periodos.map((p,i)=>`<div><span>Período ${i+1}</span><b>${br(p.ini)} a ${br(p.fim)} (${nDias(p)} dias)</b></div>`).join('')}
+      <div><span>Total</span><b>${v.total} dias</b></div>
+    </div>
+    <p class="muted">Para mudar as datas, envie um novo pedido com o mesmo nome e unidade.</p>
+    <button class="btn sec" onclick="location.reload()">Fazer outro pedido</button>
+  </div>`;
+}
+
+/* ================================================================
+   ÁREA DO GESTOR  (abra a página com #gestor no final do link)
+   ================================================================ */
+const A = { chave:'', pedidos:[], f:{unidade:'',setor:'',status:'',busca:''} };
+
+function telaGestor(){
+  $('#h-tit').textContent = `Férias ${CONFIG.ANO} · Área do gestor`;
+  $('#h-sub').textContent = 'Pedidos recebidos, choques de período por setor e aprovação.';
+  const salva = sess.get('ferias-chave');
+  if (salva){ A.chave = salva; carregarPedidos(); return; }
+  $('#app').innerHTML = `<div class="card login">
+    <h2>Entrar</h2><div class="muted">Digite a chave do gestor definida no Apps Script.${DEMO?' No modo demonstração, a chave é <b>demo</b>.':''}</div>
+    <label for="g-chave">Chave</label><input id="g-chave" type="password" autocomplete="current-password">
+    <div style="margin-top:14px"><button class="btn full" id="g-entrar">Entrar</button></div>
+    <div style="margin-top:12px;text-align:center"><a class="lnk" href="#">Voltar para o formulário</a></div>
+  </div>`;
+  const go = ()=>{ A.chave = $('#g-chave').value.trim(); if (A.chave) carregarPedidos(true); };
+  $('#g-entrar').onclick = go;
+  $('#g-chave').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+  $('#g-chave').focus();
+}
+
+async function carregarPedidos(primeiro){
+  if (!primeiro && !$('#g-lista')) $('#app').innerHTML = '<div class="card login muted">Carregando pedidos...</div>';
+  try{
+    const r = await API.get({acao:'listar', ano:CONFIG.ANO, chave:A.chave});
+    if (!r || !r.ok){ sess.del('ferias-chave'); A.chave=''; toast((r&&r.erro)||'Chave inválida.'); if(!$('#g-chave')) telaGestor(); return; }
+    sess.set('ferias-chave', A.chave);
+    A.pedidos = (r.pedidos||[]).map(p=>({...p, periodos:(p.periodos||[]).filter(x=>x.ini&&x.fim)}));
+    analisar(A.pedidos);
+    painelGestor();
+  }catch(e){ toast('Sem conexão com o servidor.'); if(!$('#g-lista')) telaGestor(); }
+}
+
+function analisar(L){
+  const grupos = {};
+  L.forEach(p=>{
+    if (p.status==='Recusado') return;
+    const g = (grupos[p.unidade+'|'+p.setor] ||= {});
+    p.periodos.forEach(per=>{ for(let d=per.ini; d<=per.fim; d=addD(d,1)) (g[d] ||= []).push(p); });
+  });
+  L.forEach(p=>{
+    p._choques = []; p._acima = false;
+    if (p.status==='Recusado') return;
+    const g = grupos[p.unidade+'|'+p.setor] || {};
+    const nomes = new Set();
+    p.periodos.forEach(per=>{ for(let d=per.ini; d<=per.fim; d=addD(d,1)){
+      const lst = g[d] || [];
+      if (lst.length > CONFIG.LIMITE_SIMULTANEO) p._acima = true;
+      lst.forEach(q=>{ if(q!==p) nomes.add(q.nome); });
+    }});
+    p._choques = [...nomes];
+  });
+  A.grupos = grupos;
+}
+
+function filtrados(){
+  const f = A.f, b = f.busca.toLowerCase();
+  return A.pedidos.filter(p=>(!f.unidade||p.unidade===f.unidade)&&(!f.setor||p.setor===f.setor)&&(!f.status||p.status===f.status)
+    &&(!b||(p.nome+' '+p.protocolo+' '+(p.funcao||'')).toLowerCase().includes(b)))
+    .sort((x,y)=>(x.unidade+x.setor+x.nome).localeCompare(y.unidade+y.setor+y.nome,'pt-BR'));
+}
+
+function painelGestor(){
+  const op = (arr,sel) => '<option value="">Todos</option>'+arr.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('');
+  $('#app').innerHTML = `
+    ${DEMO ? '<div class="demo"><b>Modo demonstração.</b> Mostrando só os pedidos feitos neste navegador.</div>' : ''}
+    <div class="barra-g">
+      <div><label>Unidade</label><select id="g-uni">${op(CONFIG.UNIDADES,A.f.unidade)}</select></div>
+      <div><label>Setor</label><select id="g-set">${op(SETORES,A.f.setor)}</select></div>
+      <div><label>Status</label><select id="g-st">${op(STATUS,A.f.status)}</select></div>
+      <div class="grow"><label>Buscar</label><input id="g-busca" placeholder="Nome, função ou protocolo" value="${esc(A.f.busca)}"></div>
+      <button class="btn sec" id="g-atu">Atualizar</button>
+      <button class="btn sec" id="g-csv">Exportar CSV</button>
+      <button class="btn sec" id="g-sair">Sair</button>
+    </div>
+    <div class="kpis" id="g-kpis"></div>
+    <div class="sec-t"><h2>Ocupação por setor</h2><span class="muted">Pessoas de férias por dia (pendentes + aprovados). Vermelho = acima do limite de ${CONFIG.LIMITE_SIMULTANEO}.</span></div>
+    <div class="card scroll heat"><div class="tl" id="g-heat"></div></div>
+    <div class="sec-t"><h2>Pedidos</h2><span class="muted"><span class="pill st-Pendente">Pendente</span> <span class="pill st-Aprovado">Aprovado</span> <span class="pill st-Ajustar">Ajustar</span> <span class="pill st-Recusado" style="color:#555">Recusado</span></span></div>
+    <div class="card scroll"><div class="tl" id="g-lista"></div></div>`;
+  $('#g-uni').onchange = e=>{ A.f.unidade=e.target.value; renderGestor(); };
+  $('#g-set').onchange = e=>{ A.f.setor=e.target.value; renderGestor(); };
+  $('#g-st').onchange  = e=>{ A.f.status=e.target.value; renderGestor(); };
+  $('#g-busca').oninput = e=>{ A.f.busca=e.target.value; renderGestor(); };
+  $('#g-atu').onclick = ()=>carregarPedidos();
+  $('#g-csv').onclick = exportarCSV;
+  $('#g-sair').onclick = ()=>{ sess.del('ferias-chave'); A.chave=''; telaGestor(); };
+  renderGestor();
+}
+
+const INI_ANO = () => ts(`${CONFIG.ANO}-01-01`);
+const DIAS_ANO = () => Math.round((Date.UTC(CONFIG.ANO+1,0,1) - INI_ANO())/DAY);
+const pos = d => (ts(d) - INI_ANO())/DAY/DIAS_ANO()*100;
+function linhasMes(){ return MESES.map((_,m)=>`<span class="mline" style="left:${pos(iso(Date.UTC(CONFIG.ANO,m,1)))}%"></span>`).join(''); }
+function cabMeses(){ return `<div class="meses-cab">${MES_C.map((n,m)=>`<span style="left:calc(${pos(iso(Date.UTC(CONFIG.ANO,m,1)))}% + 4px)">${n}</span>`).join('')}</div>`; }
+
+function renderGestor(){
+  const L = filtrados();
+  const todos = A.pedidos;
+  const cont = s => L.filter(p=>p.status===s).length;
+  const choque = L.filter(p=>p._acima).length;
+  $('#g-kpis').innerHTML = `
+    <div class="kpi"><small>Pedidos (filtro)</small><b>${L.length}</b></div>
+    <div class="kpi"><small>Pendentes</small><b>${cont('Pendente')}</b></div>
+    <div class="kpi"><small>Aprovados</small><b>${cont('Aprovado')}</b></div>
+    <div class="kpi"><small>Para ajustar</small><b>${cont('Ajustar')}</b></div>
+    <div class="kpi ${choque?'alerta':''}"><small>Acima do limite do setor</small><b>${choque}</b></div>`;
+
+  // mapa de calor por unidade + setor
+  const chaves = Object.keys(A.grupos||{}).filter(k=>{ const [u,s]=k.split('|'); return (!A.f.unidade||u===A.f.unidade)&&(!A.f.setor||s===A.f.setor); }).sort();
+  const w = 100/DIAS_ANO();
+  $('#g-heat').innerHTML = `<div class="tl-row cab"><div>Unidade · setor</div>${cabMeses()}</div>` + (chaves.length ? chaves.map(k=>{
+    const g = A.grupos[k]; let pico = 0;
+    const cels = Object.entries(g).map(([d,lst])=>{
+      const n = lst.length; pico = Math.max(pico,n);
+      const cor = n>CONFIG.LIMITE_SIMULTANEO ? 'var(--red)' : n===CONFIG.LIMITE_SIMULTANEO ? 'var(--acc)' : '#9fc0ef';
+      return `<span class="cel" style="left:${pos(d)}%;width:${w}%;background:${cor}" title="${esc(br(d)+' · '+n+' de férias: '+lst.map(p=>p.nome).join(', '))}"></span>`;
+    }).join('');
+    const [u,s] = k.split('|');
+    return `<div class="tl-row"><div class="quem"><b>${esc(u)} · ${esc(s)}</b><small>pico: ${pico} ao mesmo tempo${pico>CONFIG.LIMITE_SIMULTANEO?' <span style="color:var(--red)">· acima do limite</span>':''}</small></div>
+      <div class="trilho">${linhasMes()}${cels}</div></div>`;
+  }).join('') : '<div class="muted" style="padding:12px 0">Sem pedidos ativos.</div>');
+
+  // lista com linha do ano
+  $('#g-lista').innerHTML = `<div class="tl-row cab"><div>Colaborador</div>${cabMeses()}<div>Status</div></div>` + (L.length ? L.map(p=>{
+    const bars = p.periodos.map(per=>`<span class="bar st-${esc(p.status)}" style="left:${pos(per.ini)}%;width:${nDias(per)/DIAS_ANO()*100}%" title="${br(per.ini)} a ${br(per.fim)} · ${nDias(per)} dias"></span>`).join('');
+    const per = p.periodos.map(x=>`${brc(x.ini)}–${brc(x.fim)}`).join(' · ');
+    const ch = p._choques.length ? `<div class="choque ${p._acima?'':'leve'}">${p._acima?'Acima do limite · ':''}coincide com ${esc(p._choques.slice(0,4).join(', '))}${p._choques.length>4?' e mais '+(p._choques.length-4):''}</div>` : '';
+    return `<div class="tl-row">
+      <div class="quem"><b>${esc(p.nome)}</b><small>${esc(p.unidade)} · ${esc(p.funcao||'')} (${esc(p.setor)}) · ${esc(p.protocolo)}</small>
+        <small>${per} (${p.total||p.periodos.reduce((s,x)=>s+nDias(x),0)} dias)</small>
+        ${p.obs?`<small class="obs">“${esc(p.obs)}”</small>`:''}${ch}</div>
+      <div class="trilho">${linhasMes()}${bars}</div>
+      <div class="stbox"><select data-st="${esc(p.protocolo)}">${STATUS.map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select>
+        <input data-com="${esc(p.protocolo)}" placeholder="Comentário" value="${esc(p.comentario)}"></div>
+    </div>`;
+  }).join('') : '<div class="muted" style="padding:12px 0">Nenhum pedido com esse filtro.</div>');
+
+  $('#g-lista').querySelectorAll('[data-st]').forEach(sel=>sel.onchange=()=>salvarStatus(sel.dataset.st, {status:sel.value}));
+  $('#g-lista').querySelectorAll('[data-com]').forEach(inp=>{
+    inp.onchange = ()=>salvarStatus(inp.dataset.com, {comentario:inp.value.trim()});
+    inp.onkeydown = e=>{ if(e.key==='Enter') inp.blur(); };
+  });
+}
+
+async function salvarStatus(protocolo, mud){
+  const p = A.pedidos.find(x=>x.protocolo===protocolo); if (!p) return;
+  const novo = {status:mud.status ?? p.status, comentario:mud.comentario ?? p.comentario ?? ''};
+  try{
+    const r = await API.post({acao:'status', chave:A.chave, protocolo, ...novo});
+    if (!r || !r.ok) throw new Error((r&&r.erro)||'Não foi possível salvar.');
+    Object.assign(p, novo); analisar(A.pedidos); renderGestor();
+    toast(`Salvo: ${p.nome} · ${novo.status}`);
+  }catch(e){ toast(e.message); renderGestor(); }
+}
+
+function exportarCSV(){
+  const cab = ['Protocolo','Nome','Unidade','Setor','Função','Período','Início','Fim','Dias','Volta','Status','Comentário','Observação','Coincide com','Enviado em','Atualizado em'];
+  const q = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+  const linhas = [cab.map(q).join(';')];
+  filtrados().forEach(p=>p.periodos.forEach((x,i)=>linhas.push([p.protocolo,p.nome,p.unidade,p.setor,p.funcao,i+1,br(x.ini),br(x.fim),nDias(x),br(addD(x.fim,1)),
+    p.status,p.comentario,p.obs,(p._choques||[]).join(', '),p.enviadoEm,p.atualizadoEm].map(q).join(';'))));
+  const blob = new Blob(['﻿'+linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ferias-${CONFIG.ANO}.csv`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ================================================================
+   Roteamento simples: #gestor abre a área do gestor
+   ================================================================ */
+function rota(){
+  $('#h-emp').textContent = CONFIG.EMPRESA;
+  const gestor = location.hash.toLowerCase()==='#gestor';
+  $('#rodape').innerHTML = gestor ? `${esc(CONFIG.EMPRESA)} · Férias ${CONFIG.ANO}` : `${esc(CONFIG.EMPRESA)} · Dúvidas? Fale com seu supervisor ou com o RH · <a class="lnk" href="#gestor">Área do gestor</a>`;
+  gestor ? telaGestor() : telaColaborador();
+}
+window.addEventListener('hashchange', rota);
+rota();
+</script>
+</body>
+</html>
